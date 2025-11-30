@@ -13,7 +13,8 @@ interface StateContextType {
   transferProduct?: (productId: number, newOwner: string) => Promise<any>;
   fetchProductDetails?: (productId: number) => Promise<any>;
   fetchProductIdByBatch?: (batchId: string) => Promise<number | null>;
-  fetchUserProducts?: (ownerAddress: string) => Promise<any[]>; // ✅ NEW FUNCTION
+  fetchUserProducts?: (ownerAddress: string) => Promise<any[]>; 
+  fetchProductsCreatedBy?: (creatorAddress: string) => Promise<any[]>;
 }
 
 const StateContext = createContext<StateContextType>({});
@@ -23,7 +24,7 @@ export const StateContextProvider = ({ children }: { children: ReactNode }) => {
   
   const contract = getContract({
     client,
-    address: "0x0165878A594ca255338adfa4d48449f69242Eb8F", 
+    address: "0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82", 
     chain,
   });
 
@@ -120,6 +121,29 @@ export const StateContextProvider = ({ children }: { children: ReactNode }) => {
       return [];
     }
   };
+  const fetchProductsCreatedBy = async (creatorAddress: string) => {
+    if (!contract) return [];
+    try {
+      // Call the NEW Solidity function
+      const productIds = await readContract({
+        contract,
+        method: "function getProductsCreatedBy(address _creator) view returns (uint256[])",
+        params: [creatorAddress],
+      });
+
+      // Fetch details for each ID
+      const productsData = await Promise.all(
+        productIds.map(async (id) => {
+          return await fetchProductDetails(Number(id));
+        })
+      );
+
+      return productsData.filter((p) => p !== null);
+    } catch (error) {
+      console.error("Fetch Created Products Failed:", error);
+      return [];
+    }
+  };
 
   return (
     <StateContext.Provider
@@ -132,6 +156,7 @@ export const StateContextProvider = ({ children }: { children: ReactNode }) => {
         fetchProductIdByBatch, 
         fetchUserProducts, 
         isTransactionLoading: isPending,
+        fetchProductsCreatedBy,
       }}
     >
       {children}

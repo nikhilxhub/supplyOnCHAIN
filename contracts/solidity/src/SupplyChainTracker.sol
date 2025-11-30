@@ -20,9 +20,13 @@ contract SupplyChainTracker {
 
     uint256 public productCount;
     mapping(uint256 => Product) public products;
+    
+  
     mapping(address => uint256[]) private _ownerProducts;
 
-    // ✅ NEW: Mapping to find Product ID using Batch ID
+
+    mapping(address => uint256[]) private _createdProducts;
+
     mapping(string => uint256) public batchIdToProductId;
 
     event ProductCreated(uint256 indexed id, address indexed manufacturer, address wholesaler, address retailer);
@@ -42,8 +46,6 @@ contract SupplyChainTracker {
     ) public {
         require(_wholesaler != address(0), "Wholesaler address cannot be zero");
         require(_retailer != address(0), "Retailer address cannot be zero");
-        
-        // ✅ NEW: Ensure Batch ID is unique
         require(batchIdToProductId[_batchId] == 0, "Batch ID already exists");
 
         productCount++;
@@ -62,9 +64,12 @@ contract SupplyChainTracker {
             exists: true
         });
 
+        // Add to Current Owner list
         _ownerProducts[msg.sender].push(newId);
         
-        // ✅ NEW: Save the mapping
+    
+        _createdProducts[msg.sender].push(newId);
+        
         batchIdToProductId[_batchId] = newId;
 
         emit ProductCreated(newId, msg.sender, _wholesaler, _retailer);
@@ -75,6 +80,7 @@ contract SupplyChainTracker {
         
         Product storage p = products[_id];
         
+        // Logic unchanged...
         if (msg.sender == p.manufacturer) {
             require(_newOwner == p.assignedWholesaler, "Can only send to assigned Wholesaler");
             p.status = ProductStatus.InTransit; 
@@ -94,8 +100,13 @@ contract SupplyChainTracker {
         p.currentOwner = _newOwner;
         p.timestamp = block.timestamp;
 
+        // Remove from OLD owner's current list
         _removeProductIdFromOwner(oldOwner, _id);
+        
+        // Add to NEW owner's current list
         _ownerProducts[_newOwner].push(_id);
+        
+        // NOTE: We do NOT remove it from _createdProducts. The manufacturer created it forever.
 
         emit OwnershipTransferred(_id, oldOwner, _newOwner, block.timestamp);
     }
@@ -120,7 +131,11 @@ contract SupplyChainTracker {
         return _ownerProducts[_owner];
     }
 
-    // ✅ NEW: Helper function for Frontend
+    //  Function to get products created by a manufacturer
+    function getProductsCreatedBy(address _creator) public view returns (uint256[] memory) {
+        return _createdProducts[_creator];
+    }
+
     function getProductIdByBatchId(string memory _batchId) public view returns (uint256) {
         return batchIdToProductId[_batchId];
     }
