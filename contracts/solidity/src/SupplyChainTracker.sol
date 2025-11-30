@@ -3,13 +3,16 @@ pragma solidity ^0.8.19;
 
 contract SupplyChainTracker {
 
-    enum Role { None, Manufacturer, Wholesaler, Retailer, Consumer }
     enum ProductStatus { Created, InTransit, InWarehouse, Delivered }
 
     struct Product {
         uint256 id;
         string name;
         string batchId;
+        // SECURITY: The manufacturer is ALWAYS the person who created the product
+        address manufacturer;        
+        address assignedWholesaler; 
+        address assignedRetailer;    
         address currentOwner;
         ProductStatus status;
         uint256 timestamp;
@@ -18,26 +21,12 @@ contract SupplyChainTracker {
 
     uint256 public productCount;
     mapping(uint256 => Product) public products;
-    mapping(address => Role) public participants;
-    address public admin;
-
-   
+    
+    // We track which products an address currently owns
     mapping(address => uint256[]) private _ownerProducts;
 
-    event ParticipantRegistered(address indexed participant, Role role);
-    event ProductCreated(uint256 indexed id, string name, string batchId, address indexed owner, uint256 timestamp);
-    event ProductStatusUpdated(uint256 indexed id, ProductStatus status, uint256 timestamp, address indexed updatedBy);
+    event ProductCreated(uint256 indexed id, address indexed manufacturer, address wholesaler, address retailer);
     event OwnershipTransferred(uint256 indexed id, address indexed oldOwner, address indexed newOwner, uint256 timestamp);
-
-    modifier onlyAdmin() {
-        require(msg.sender == admin, "Only admin can perform this action");
-        _;
-    }
-
-    modifier onlyRole(Role _role) {
-        require(participants[msg.sender] == _role, "Unauthorized: Incorrect Role");
-        _;
-    }
 
     modifier onlyProductOwner(uint256 _id) {
         require(products[_id].exists, "Product does not exist");
@@ -45,17 +34,18 @@ contract SupplyChainTracker {
         _;
     }
 
-    constructor() {
-        admin = msg.sender;
-    }
+    // --- 1. Create Product (OPEN TO PUBLIC) ---
+    // Anyone can call this. 
+    function createProduct(
+        string memory _name, 
+        string memory _batchId, 
+        address _wholesaler, 
+        address _retailer
+    ) public {
+        // Validation to prevent accidental zero-address errors
+        require(_wholesaler != address(0), "Wholesaler address cannot be zero");
+        require(_retailer != address(0), "Retailer address cannot be zero");
 
-    function registerParticipant(address _participant, Role _role) public onlyAdmin {
-        require(_participant != address(0), "Invalid address");
-        participants[_participant] = _role;
-        emit ParticipantRegistered(_participant, _role);
-    }
-
-    function createProduct(string memory _name, string memory _batchId) public onlyRole(Role.Manufacturer) {
         productCount++;
         uint256 newId = productCount;
 
@@ -63,77 +53,75 @@ contract SupplyChainTracker {
             id: newId,
             name: _name,
             batchId: _batchId,
-            currentOwner: msg.sender,
+            // SECURITY CHECK: 
+            // We do NOT ask the user "who is the manufacturer?". 
+            // We automatically set it to msg.sender. 
+            // This prevents Alice from creating a product and claiming it was made by Bob.
+            manufacturer: msg.sender, 
+            
+            assignedWholesaler: _wholesaler,
+            assignedRetailer: _retailer,
+            currentOwner: msg.sender, // Manufacturer starts as the owner
             status: ProductStatus.Created,
             timestamp: block.timestamp,
             exists: true
         });
 
-
         _ownerProducts[msg.sender].push(newId);
 
-        emit ProductCreated(newId, _name, _batchId, msg.sender, block.timestamp);
+        emit ProductCreated(newId, msg.sender, _wholesaler, _retailer);
     }
 
-    function updateStatus(uint256 _id, ProductStatus _newStatus) public onlyProductOwner(_id) {
-        require(products[_id].exists, "Product does not exist");
-        products[_id].status = _newStatus;
-        products[_id].timestamp = block.timestamp;
-        emit ProductStatusUpdated(_id, _newStatus, block.timestamp, msg.sender);
-    }
-
-
+    // --- 2. Transfer Logic ---
     function transferOwnership(uint256 _id, address _newOwner) public onlyProductOwner(_id) {
         require(_newOwner != address(0), "Invalid address");
         
-        Role senderRole = participants[msg.sender];
-        Role receiverRole = participants[_newOwner];
-
-        if (senderRole == Role.Manufacturer) {
-            require(receiverRole == Role.Wholesaler, "Manufacturers must send to Wholesalers");
-        } else if (senderRole == Role.Wholesaler) {
-            require(receiverRole == Role.Retailer, "Wholesalers must send to Retailers");
-        } else if (senderRole == Role.Retailer) {
-            require(receiverRole == Role.Consumer, "Retailers must send to Consumers");
-        } else {
-            revert("Invalid Supply Chain Flow");
-        }
-
-        address oldOwner = products[_id].currentOwner;
-
-        // 1. Update Struct
-        products[_id].currentOwner = _newOwner;
-        products[_id].timestamp = block.timestamp;
+        Product storage p = products[_id];
         
-        if (receiverRole == Role.Consumer) {
-             products[_id].status = ProductStatus.Delivered;
-        } else {
-             products[_id].status = ProductStatus.InTransit;
+        // Logic: You can only transfer to the people YOU defined in the struct
+        
+        // 1. Manufacturer -> Wholesaler
+        if (msg.sender == p.manufacturer) {
+            require(_newOwner == p.assignedWholesaler, "Can only send to assigned Wholesaler");
+            p.status = ProductStatus.InTransit; 
+        }
+        // 2. Wholesaler -> Retailer
+        else if (msg.sender == p.assignedWholesaler) {
+            require(_newOwner == p.assignedRetailer, "Can only send to assigned Retailer");
+            p.status = ProductStatus.InTransit;
+        }
+        // 3. Retailer -> Consumer
+        else if (msg.sender == p.assignedRetailer) {
+            p.status = ProductStatus.Delivered;
+            // Any address can be the consumer, so we don't check against a specific variable here
+        } 
+        else {
+            revert("Unauthorized transfer flow");
         }
 
-        // 2. MOVE PRODUCT ID: Remove from Old Owner, Add to New Owner
+        address oldOwner = p.currentOwner;
+        p.currentOwner = _newOwner;
+        p.timestamp = block.timestamp;
+
         _removeProductIdFromOwner(oldOwner, _id);
         _ownerProducts[_newOwner].push(_id);
 
         emit OwnershipTransferred(_id, oldOwner, _newOwner, block.timestamp);
     }
 
-
-    
+    // Helper to manage the arrays
     function _removeProductIdFromOwner(address owner, uint256 productId) internal {
         uint256[] storage ownerList = _ownerProducts[owner];
         for (uint256 i = 0; i < ownerList.length; i++) {
             if (ownerList[i] == productId) {
-                
                 ownerList[i] = ownerList[ownerList.length - 1];
-
                 ownerList.pop();
                 break;
             }
         }
     }
 
-
+    // --- View Functions ---
 
     function getProduct(uint256 _id) public view returns (Product memory) {
         require(products[_id].exists, "Product does not exist");
