@@ -1,22 +1,40 @@
 import React from 'react';
 import { ConnectButton } from 'thirdweb/react';
-import { client } from '@/client'; // Adjust path if necessary based on your project structure
-import { Box, Cuboid } from 'lucide-react';
+import { client } from '@/client'; 
+import { Box, Cuboid, Menu } from 'lucide-react'; // Added Menu icon
+import { Button } from "@/components/ui/button"; // Assuming you have this
 
-const NavBar = () => {
+// Define props to accept the toggle function
+interface NavBarProps {
+  onMenuClick?: () => void;
+}
+
+const NavBar = ({ onMenuClick }: NavBarProps) => {
   return (
-    <nav className="flex items-center justify-between border-b px-6 py-4 bg-background">
-      <div className="flex items-center gap-2">
-        <div className="bg-primary p-2 rounded-md">
-          <Cuboid className="h-6 w-6 text-primary-foreground" />
+    <nav className="flex items-center justify-between border-b px-4 py-3 bg-white sticky top-0 z-30">
+      <div className="flex items-center gap-3">
+        {/* Mobile Menu Button (Hidden on Desktop) */}
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="md:hidden" 
+          onClick={onMenuClick}
+        >
+          <Menu className="h-6 w-6" />
+        </Button>
+
+        <div className="flex items-center gap-2">
+          <div className="bg-primary p-2 rounded-md">
+            <Cuboid className="h-6 w-6 text-primary-foreground" />
+          </div>
+          <span className="text-xl font-bold tracking-tight hidden sm:block">SupplyOnChain</span>
         </div>
-        <span className="text-xl font-bold tracking-tight">SupplyOnChain</span>
       </div>
 
       <div>
         <ConnectButton 
           client={client} 
-          theme={"dark"} 
+          // theme={"dark"} 
         />
       </div>
     </nav>
