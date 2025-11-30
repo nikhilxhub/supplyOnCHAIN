@@ -166,7 +166,7 @@ const DashboardAnalytics = () => {
   if (!address) {
     return (
       <div className="flex flex-col items-center justify-center h-[50vh] text-center">
-        <h2 className="text-2xl font-semibold">Wallet Not Connected</h2>
+        <h2 className="text-2xl  font-source-serif">Wallet Not Connected</h2>
         <p className="text-muted-foreground">Please connect your wallet to view your supply chain dashboard.</p>
       </div>
     );
@@ -178,7 +178,7 @@ const DashboardAnalytics = () => {
       {/* Header Section */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Supply Chain Dashboard</h2>
+          <h2 className="text-3xl tracking-tight font-poppins">Supply Chain Dashboard</h2>
           <p className="text-muted-foreground">Manage and track your manufactured & owned products.</p>
         </div>
         <div className="flex items-center gap-2">

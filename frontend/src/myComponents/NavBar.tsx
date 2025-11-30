@@ -27,7 +27,10 @@ const NavBar = ({ onMenuClick }: NavBarProps) => {
           <div className="bg-primary p-2 rounded-md">
             <Cuboid className="h-6 w-6 text-primary-foreground" />
           </div>
-          <span className="text-xl font-bold tracking-tight hidden sm:block">SupplyOnChain</span>
+          <span className="text-xl font-bol tracking-tight hidden sm:block font-source-serif weight">
+  SupplyOnChain
+</span>
+
         </div>
       </div>
 

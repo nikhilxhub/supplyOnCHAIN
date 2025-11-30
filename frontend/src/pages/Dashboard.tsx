@@ -176,7 +176,7 @@ const Dashboard = () => {
               <div className="bg-slate-100 p-6 rounded-full">
                 <AlertCircle className="h-12 w-12 text-slate-400" />
               </div>
-              <h2 className="text-2xl font-bold tracking-tight">Wallet Not Connected</h2>
+              <h2 className="text-4xl tracking-tight font-source-serif">Wallet Not Connected</h2>
               <p className="text-muted-foreground max-w-md">
                 Please connect your wallet to access the dashboard.
               </p>
@@ -185,7 +185,7 @@ const Dashboard = () => {
             <div className="max-w-4xl mx-auto space-y-6">
               
               <div className="flex items-center justify-between">
-                <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Dashboard</h1>
+                <h1 className=" md:text-3xl font-semibold tracking-tight font-source-serif">Dashboard</h1>
               </div>
 
               {activeTab === 'dashboard' && <DashBoardAnalytics />}
