@@ -1,65 +1,96 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext } from "react";
 import type { ReactNode } from "react";
-import { useActiveAccount, useWalletBalance, useSendTransaction } from "thirdweb/react";
-import { prepareContractCall } from "thirdweb";
+import { useActiveAccount, useSendTransaction } from "thirdweb/react";
+import { prepareContractCall, readContract } from "thirdweb";
 import { client, chain } from "../client";
 import { getContract } from "thirdweb";
 
 interface StateContextType {
   address?: string;
-  balance?: string;
-  symbol?: string;
   contract?: any;
   isTransactionLoading?: boolean;
-  // Updated signature to match your Solidity Contract
-  createProduct?: (
-    name: string, 
-    batchId: string, 
-    wholesaler: string, 
-    retailer: string
-  ) => Promise<any>;
+  createProduct?: (name: string, batchId: string, wholesaler: string, retailer: string) => Promise<any>;
+  transferProduct?: (productId: number, newOwner: string) => Promise<any>;
+  fetchProductDetails?: (productId: number) => Promise<any>;
+  fetchProductIdByBatch?: (batchId: string) => Promise<number | null>; // ✅ NEW
 }
 
 const StateContext = createContext<StateContextType>({});
 
 export const StateContextProvider = ({ children }: { children: ReactNode }) => {
   const account = useActiveAccount();
-  const { data: balance } = useWalletBalance({
-    client,
-    chain,
-    address: account?.address,
-  });
-
+  
+  // ⚠️ UPDATE THIS ADDRESS AFTER RE-DEPLOYING CONTRACT
   const contract = getContract({
     client,
-    address: "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512", // Ensure this matches your deployed address
+    address: "0x0165878A594ca255338adfa4d48449f69242Eb8F", 
     chain,
   });
 
-  // Thirdweb Hook for writing to blockchain
   const { mutateAsync: sendTransaction, isPending } = useSendTransaction();
 
+  // 1. Create Product
   const createProduct = async (name: string, batchId: string, wholesaler: string, retailer: string) => {
     if (!contract) return;
-
     try {
-      // Prepare the transaction based on your specific Solidity signature
-      console.log("Im here....")
       const transaction = prepareContractCall({
         contract,
         method: "function createProduct(string _name, string _batchId, address _wholesaler, address _retailer)",
         params: [name, batchId, wholesaler, retailer],
       });
-      console.log("Im here....2")
-      
-      // Send execution
-      const receipt = await sendTransaction(transaction);
-      console.log("Im here....3")
-      console.log("Transaction Success:", receipt);
-      return receipt;
+      return await sendTransaction(transaction);
     } catch (error) {
-      console.error("Contract Call Failed:", error);
+      console.error("Create failed:", error);
       throw error;
+    }
+  };
+
+  // 2. Transfer Ownership
+  const transferProduct = async (productId: number, newOwner: string) => {
+    if (!contract) return;
+    try {
+      const transaction = prepareContractCall({
+        contract,
+        method: "function transferOwnership(uint256 _id, address _newOwner)",
+        params: [BigInt(productId), newOwner],
+      });
+      return await sendTransaction(transaction);
+    } catch (error) {
+      console.error("Transfer failed:", error);
+      throw error;
+    }
+  };
+
+  // 3. Read Product Details
+  const fetchProductDetails = async (productId: number) => {
+    if (!contract) return;
+    try {
+      const data = await readContract({
+        contract,
+        method: "function getProduct(uint256 _id) view returns ((uint256 id, string name, string batchId, address manufacturer, address assignedWholesaler, address assignedRetailer, address currentOwner, uint8 status, uint256 timestamp, bool exists))",
+        params: [BigInt(productId)],
+      });
+      return data;
+    } catch (error) {
+      console.error("Fetch failed:", error);
+      return null;
+    }
+  };
+
+  // 4. ✅ NEW: Get ID from Batch
+  const fetchProductIdByBatch = async (batchId: string) => {
+    if (!contract) return null;
+    try {
+      const id = await readContract({
+        contract,
+        method: "function getProductIdByBatchId(string _batchId) view returns (uint256)",
+        params: [batchId],
+      });
+      // Convert BigInt to number
+      return Number(id);
+    } catch (error) {
+      console.error("Fetch ID by Batch failed:", error);
+      return null;
     }
   };
 
@@ -67,10 +98,11 @@ export const StateContextProvider = ({ children }: { children: ReactNode }) => {
     <StateContext.Provider
       value={{
         address: account?.address,
-        balance: balance?.displayValue,
-        symbol: balance?.symbol,
         contract,
         createProduct,
+        transferProduct,
+        fetchProductDetails,
+        fetchProductIdByBatch, 
         isTransactionLoading: isPending,
       }}
     >

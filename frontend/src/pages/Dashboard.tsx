@@ -18,6 +18,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import DashBoardAnalytics from '@/myComponents/DashBoardAnalytics';
 import { backendUrl } from '@/utils/config';
+import ScanSection from '@/myComponents/ScanSection';
 
 const Dashboard = () => {
   const { address, createProduct, isTransactionLoading } = useStateContext();
@@ -60,7 +61,7 @@ const Dashboard = () => {
         
       
         
-        await fetch(`${backendUrl}/api/products`, {
+        await fetch(`http://localhost:5000/api/products`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -236,6 +237,10 @@ const Dashboard = () => {
                     </form>
                   </CardContent>
                 </Card>
+              )}
+
+              {activeTab === 'scan' && (
+                <ScanSection />
               )}
             </div>
           )}

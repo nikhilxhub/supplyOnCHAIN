@@ -4,6 +4,7 @@ import LandingPage from './pages/LandingPage'
 import Dashboard from './pages/Dashboard'
 import { ThirdwebProvider } from 'thirdweb/react'
 import { StateContextProvider } from './context/StateProvider'
+import { Toaster } from 'sonner'
 function App() {
 
 
@@ -14,6 +15,7 @@ function App() {
         <StateContextProvider>
           
 
+             <Toaster />
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<LandingPage />} />

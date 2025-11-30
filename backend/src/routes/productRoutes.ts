@@ -18,7 +18,7 @@ router.post("/", async (req: Request, res: Response) => {
       createdAt,
     } = req.body;
 
-    // 1) Decide what to encode into the QR
+
     const qrPayload = JSON.stringify({
       transactionHash,
       batchId,
@@ -28,7 +28,6 @@ router.post("/", async (req: Request, res: Response) => {
     // 2) Generate QR code as Data URL (base64 PNG)
     const qrCodeDataUrl = await QRCode.toDataURL(qrPayload); 
     console.log("qr code url:", qrCodeDataUrl);
-
 
     // 3) Create product document with qrCode
     const newProduct = await Product.create({
@@ -58,6 +57,44 @@ router.post("/", async (req: Request, res: Response) => {
   }
 });
 
+// GET /api/products?transactionHash=...
+// GET /api/products/transaction/:transactionHash
+router.get("/transaction/:transactionHash", async (req: Request, res: Response) => {
+  try {
+    const { transactionHash } = req.params;
+    console.log("GET /transaction/:transactionHash", transactionHash);
+
+    if (!transactionHash) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing transactionHash param",
+      });
+    }
+
+    const product = await Product.findOne({ transactionHash });
+
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: "Product not found",
+      });
+    }
+
+    // 👇 Make this shape super simple
+    return res.status(200).json({
+      success: true,
+      product,
+    });
+  } catch (error) {
+    console.error("Error fetching product by hash:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error while fetching product",
+    });
+  }
+});
+
+
 router.get("/owner/:address", async (req: Request, res: Response) => {
   try {
     const { address } = req.params;
@@ -77,6 +114,5 @@ router.get("/owner/:address", async (req: Request, res: Response) => {
     });
   }
 });
-
 
 export default router;
