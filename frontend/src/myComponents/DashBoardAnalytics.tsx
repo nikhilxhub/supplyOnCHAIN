@@ -166,7 +166,7 @@ const DashboardAnalytics = () => {
   if (!address) {
     return (
       <div className="flex flex-col items-center justify-center h-[50vh] text-center">
-        <h2 className="text-2xl  font-source-serif">Wallet Not Connected</h2>
+        <h2 className="text-2xl font-semibold font-source-serif">Wallet Not Connected</h2>
         <p className="text-muted-foreground">Please connect your wallet to view your supply chain dashboard.</p>
       </div>
     );
