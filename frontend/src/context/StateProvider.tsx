@@ -12,7 +12,8 @@ interface StateContextType {
   createProduct?: (name: string, batchId: string, wholesaler: string, retailer: string) => Promise<any>;
   transferProduct?: (productId: number, newOwner: string) => Promise<any>;
   fetchProductDetails?: (productId: number) => Promise<any>;
-  fetchProductIdByBatch?: (batchId: string) => Promise<number | null>; // ✅ NEW
+  fetchProductIdByBatch?: (batchId: string) => Promise<number | null>;
+  fetchUserProducts?: (ownerAddress: string) => Promise<any[]>; // ✅ NEW FUNCTION
 }
 
 const StateContext = createContext<StateContextType>({});
@@ -20,7 +21,6 @@ const StateContext = createContext<StateContextType>({});
 export const StateContextProvider = ({ children }: { children: ReactNode }) => {
   const account = useActiveAccount();
   
-  // ⚠️ UPDATE THIS ADDRESS AFTER RE-DEPLOYING CONTRACT
   const contract = getContract({
     client,
     address: "0x0165878A594ca255338adfa4d48449f69242Eb8F", 
@@ -61,7 +61,7 @@ export const StateContextProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // 3. Read Product Details
+  // 3. Read Single Product Details
   const fetchProductDetails = async (productId: number) => {
     if (!contract) return;
     try {
@@ -77,7 +77,7 @@ export const StateContextProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // 4. ✅ NEW: Get ID from Batch
+  // 4. Get ID from Batch
   const fetchProductIdByBatch = async (batchId: string) => {
     if (!contract) return null;
     try {
@@ -86,11 +86,38 @@ export const StateContextProvider = ({ children }: { children: ReactNode }) => {
         method: "function getProductIdByBatchId(string _batchId) view returns (uint256)",
         params: [batchId],
       });
-      // Convert BigInt to number
       return Number(id);
     } catch (error) {
       console.error("Fetch ID by Batch failed:", error);
       return null;
+    }
+  };
+
+  // 5. ✅ NEW: Fetch All Products for Owner (Real-Time Status)
+  const fetchUserProducts = async (ownerAddress: string) => {
+    if (!contract) return [];
+    try {
+      // Step A: Get list of IDs
+      const productIds = await readContract({
+        contract,
+        method: "function getProductsByOwner(address _owner) view returns (uint256[])",
+        params: [ownerAddress],
+      });
+
+      // Step B: Loop through IDs and fetch details for each
+      // We use Promise.all to fetch them in parallel for speed
+      const productsData = await Promise.all(
+        productIds.map(async (id) => {
+          const details = await fetchProductDetails(Number(id));
+          return details;
+        })
+      );
+
+      // Filter out nulls (failed fetches)
+      return productsData.filter((p) => p !== null);
+    } catch (error) {
+      console.error("Fetch User Products Failed:", error);
+      return [];
     }
   };
 
@@ -103,6 +130,7 @@ export const StateContextProvider = ({ children }: { children: ReactNode }) => {
         transferProduct,
         fetchProductDetails,
         fetchProductIdByBatch, 
+        fetchUserProducts, 
         isTransactionLoading: isPending,
       }}
     >
