@@ -1,2 +1,3 @@
 export const backendUrl = import.meta.env.VITE_BACKEND;
-export const contract = import.meta.env.CONTRACT || "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
+export const contractAddr = import.meta.env.VITE_CONTRACT;
+export const thirdwebClientId = import.meta.env.VITE_THIRDWEB_CLIENT_ID;

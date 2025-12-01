@@ -23,18 +23,13 @@ import {
   Download,
   Loader2
 } from 'lucide-react';
-
-// Shadcn UI Components
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-
-// Import the utility function
 import { handleDownloadQR } from '@/utils/handleDownloadQR';
-
-// --- Configuration ---
+import { backendUrl } from '@/utils/config';
 
 // Mapping Solidity Enum (0-3) to UI Labels and Colors
 const STATUS_MAP: any = {
@@ -90,7 +85,7 @@ const DashboardAnalytics = () => {
         // --- B. FETCH DATABASE DATA (Visuals/Metadata) ---
         let dbData: any[] = [];
         try {
-            const res = await axios.get(`http://localhost:5000/api/products/owner/${address}`);
+            const res = await axios.get(`${backendUrl}/api/products/owner/${address}`);
             if (res.data.success) {
                 dbData = res.data.data;
             }

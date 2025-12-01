@@ -17,6 +17,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import DashBoardAnalytics from '@/myComponents/DashBoardAnalytics';
 import ScanSection from '@/myComponents/ScanSection';
+import { backendUrl } from '@/utils/config';
 
 const Dashboard = () => {
   const { address, createProduct, isTransactionLoading } = useStateContext();
@@ -62,7 +63,7 @@ const Dashboard = () => {
       if (receipt) {
         console.log("Blockchain transaction success. Syncing with MongoDB...");
         
-        await fetch(`http://localhost:5000/api/products`, {
+        await fetch(`${backendUrl}/api/products`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({

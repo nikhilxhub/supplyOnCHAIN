@@ -23,6 +23,7 @@ import axios from "axios";
 // QR libs
 import { Scanner, type IDetectedBarcode } from "@yudiel/react-qr-scanner";
 import jsQR from "jsqr";
+import { backendUrl } from "@/utils/config";
 
 const STATUS_LABELS = ["Created", "In Transit", "In Warehouse", "Delivered"];
 const STATUS_COLORS = ["bg-blue-500", "bg-yellow-500", "bg-orange-500", "bg-green-500"];
@@ -68,7 +69,7 @@ const handleQrResult = async (data: string | null) => {
     let productFromDb: any = null;
     try {
       const backendRes = await axios.get(
-        `http://localhost:5000/api/products/transaction/${transactionHash}`
+        `${backendUrl}/api/products/transaction/${transactionHash}`
       );
       if (backendRes.data?.success && backendRes.data.product) {
         productFromDb = backendRes.data.product;

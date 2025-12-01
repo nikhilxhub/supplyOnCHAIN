@@ -4,6 +4,7 @@ import { useActiveAccount, useSendTransaction } from "thirdweb/react";
 import { prepareContractCall, readContract } from "thirdweb";
 import { client, chain } from "../client";
 import { getContract } from "thirdweb";
+import { contractAddr } from "@/utils/config";
 
 interface StateContextType {
   address?: string;
@@ -24,7 +25,7 @@ export const StateContextProvider = ({ children }: { children: ReactNode }) => {
   
   const contract = getContract({
     client,
-    address: "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0", 
+    address:contractAddr , 
     chain,
   });
 
