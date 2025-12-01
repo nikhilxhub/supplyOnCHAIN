@@ -1,22 +1,12 @@
 {
   "compilerOptions": {
-    // Environment setup
     "target": "ES2020",
     "module": "CommonJS",
     "moduleResolution": "node",
     "lib": ["ES2020"],
-
-    // Paths
-    "outDir": "./dist",
-    "rootDir": "./src",
-
-    // Best practices
     "strict": true,
     "esModuleInterop": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-
-    // Node types
-    "types": ["node"]
+    "skipLibCheck": true
+  
   }
 }
