@@ -1,7 +1,6 @@
-import React from 'react';
 import { ConnectButton } from 'thirdweb/react';
 import { client } from '@/client'; 
-import { Box, Cuboid, Menu } from 'lucide-react'; // Added Menu icon
+import { Cuboid, Menu } from 'lucide-react'; // Added Menu icon
 import { Button } from "@/components/ui/button"; // Assuming you have this
 
 // Define props to accept the toggle function

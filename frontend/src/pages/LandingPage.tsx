@@ -1,4 +1,3 @@
-import React from 'react';
 import { motion } from 'framer-motion';
 import { 
   Box, 
@@ -10,7 +9,6 @@ import {
   Activity, 
   Lock, 
   Database,
-  Search
 } from 'lucide-react';
 
 // --- Theme Configuration & Mock Data ---
@@ -86,11 +84,7 @@ const LandingPage = () => {
       className="min-h-screen w-full selection:bg-[#DDBEA9] selection:text-[#2E2C29] overflow-x-hidden"
       style={{ backgroundColor: THEME.colors.bg, color: THEME.colors.text }}
     >
-      {/* NOTE: Ensure these fonts are loaded in your index.css or Layout 
-        font-poppins, font-source-serif, font-cursive, font-montserrat
-      */}
 
-      {/* --- Navigation Bar --- */}
       <nav className="w-full px-6 py-6 flex justify-between items-center max-w-7xl mx-auto">
         <div className="flex items-center gap-2">
           <Box strokeWidth={1.5} className="w-6 h-6" style={{ color: THEME.colors.olive }} />
@@ -112,7 +106,9 @@ const LandingPage = () => {
           viewport={{ once: true }}
           variants={staggerContainer}
         >
-          <motion.div variants={fadeInUp} className="mb-4 flex justify-center">
+          
+          <motion.div //@ts-ignore
+           variants={fadeInUp} className="mb-4 flex justify-center">
             <span 
               className="px-4 py-1.5 rounded-full text-xs font-montserrat tracking-widest uppercase border"
               style={{ borderColor: THEME.colors.olive, color: THEME.colors.olive }}
@@ -122,6 +118,7 @@ const LandingPage = () => {
           </motion.div>
 
           <motion.h1 
+          //@ts-ignore
             variants={fadeInUp}
             className="font-poppins font-bold text-5xl md:text-7xl leading-[1.1] mb-8"
           >
@@ -132,6 +129,7 @@ const LandingPage = () => {
           </motion.h1>
 
           <motion.p 
+          //@ts-ignore
             variants={fadeInUp}
             className="font-source-serif text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed"
             style={{ color: THEME.colors.secondary }}
@@ -141,6 +139,7 @@ const LandingPage = () => {
           </motion.p>
 
           <motion.button
+          //@ts-ignore
             variants={fadeInUp}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}

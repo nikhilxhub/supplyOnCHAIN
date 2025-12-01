@@ -19,13 +19,14 @@ interface StateContextType {
 }
 
 const StateContext = createContext<StateContextType>({});
+console.log(contractAddr);
 
 export const StateContextProvider = ({ children }: { children: ReactNode }) => {
   const account = useActiveAccount();
   
   const contract = getContract({
     client,
-    address:contractAddr , 
+    address:contractAddr, 
     chain,
   });
 
