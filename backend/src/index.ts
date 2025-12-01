@@ -9,6 +9,7 @@ app.use(cors())
 dotenv.config()
 connectDB();
 app.use("/api/products", productRoutes);
+app.get("/health", (_req, res) => res.json({ ok: true }));
 
 
 app.listen(5000, () => console.log("Server running on port 5000"));
