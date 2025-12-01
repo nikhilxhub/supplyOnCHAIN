@@ -10,6 +10,7 @@ import {
   Lock, 
   Database,
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 // --- Theme Configuration & Mock Data ---
 
@@ -49,8 +50,6 @@ const STAGES = [
   }
 ];
 
-// --- Animation Variants (Weighted & Smooth) ---
-
 const fadeInUp = {
   hidden: { opacity: 0, y: 40 },
   visible: { 
@@ -71,12 +70,13 @@ const staggerContainer = {
 };
 
 const LandingPage = () => {
+  const navigate = useNavigate();
   
   // Navigation Handler
   const handleDashboardClick = () => {
-    // TODO: Connect this to your Router (e.g., navigate('/dashboard'))
+    
     console.log("Navigating to Dashboard...");
-    window.location.href = '/dashboard'; // Simple fallback
+    navigate("/dashboard");
   };
 
   return (
