@@ -118,7 +118,3 @@ For major changes, please open an issue first to discuss what you’d like to ch
 MIT License © 2025 [Nikhil Ummidi](https://github.com/nikhilxhub)
 
 ```
-
-
-
-![Alt text](assets/my-image.png)
