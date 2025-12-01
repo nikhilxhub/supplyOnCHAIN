@@ -1,5 +1,5 @@
 
-import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import {  HashRouter, Route, Routes } from 'react-router-dom'
 import LandingPage from './pages/LandingPage'
 import Dashboard from './pages/Dashboard'
 import { ThirdwebProvider } from 'thirdweb/react'
@@ -16,13 +16,16 @@ function App() {
           
 
              <Toaster />
-        <BrowserRouter>
+        {/* <BrowserRouter> */}
+        <HashRouter>
+          
           <Routes>
             <Route path="/" element={<LandingPage />} />
             <Route path="/dashboard" element={<Dashboard />} />
 
           </Routes>
-        </BrowserRouter>
+        </HashRouter>
+        {/* </BrowserRouter> */}
         </StateContextProvider>
       </ThirdwebProvider>
     </>
